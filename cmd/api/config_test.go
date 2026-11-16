@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -8,8 +9,28 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// isolateEnv blanks every variable declared in the config struct tags, so the
+// tests never see the developer's .env (exported by the Makefile) or CI env.
+// envconfig treats an empty value as unset, which makes defaults apply.
+func isolateEnv(t *testing.T) {
+	t.Helper()
+	var walk func(reflect.Type)
+	walk = func(typ reflect.Type) {
+		for i := 0; i < typ.NumField(); i++ {
+			f := typ.Field(i)
+			if tag := f.Tag.Get("envconfig"); tag != "" {
+				t.Setenv(strings.Split(tag, ",")[0], "")
+			} else if f.Type.Kind() == reflect.Struct {
+				walk(f.Type)
+			}
+		}
+	}
+	walk(reflect.TypeOf(config{}))
+}
+
 func TestLoadConfig(t *testing.T) {
 	t.Run("applies defaults and parses typed values", func(t *testing.T) {
+		isolateEnv(t)
 		t.Setenv("DB_PASSWORD", "secret")
 		t.Setenv("LOG_LEVEL", "DEBUG")
 		t.Setenv("PAYMENT_SIMULATED_DELAY", "500ms")
@@ -27,8 +48,9 @@ func TestLoadConfig(t *testing.T) {
 		if cfg.Log.Level.Zap() != zapcore.DebugLevel {
 			t.Fatalf("level = %v", cfg.Log.Level.Zap())
 		}
+		// Never print the token itself: test output ends up in CI logs.
 		if cfg.APM.ServerURL.String() != "http://localhost:8200" || cfg.APM.SecretToken != "" {
-			t.Fatalf("apm = %+v", cfg.APM)
+			t.Fatalf("apm server = %s, secret token set = %t", cfg.APM.ServerURL, cfg.APM.SecretToken != "")
 		}
 	})
 
@@ -45,6 +67,7 @@ func TestLoadConfig(t *testing.T) {
 	}
 	for _, tc := range errorCases {
 		t.Run(tc.name, func(t *testing.T) {
+			isolateEnv(t)
 			t.Setenv("DB_PASSWORD", "secret")
 			for k, v := range tc.env {
 				t.Setenv(k, v)
