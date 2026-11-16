@@ -1,0 +1,9 @@
+# Força LF no working tree em todos os SOs. Sem isso, o Git for Windows
+# (core.autocrlf=true) faria checkout com CRLF e:
+#   - o go fmt reescreveria todos os .go para LF, e o pre-commit barraria tudo;
+#   - scripts shell (.githooks/*, deploy/**/*.sh) quebrariam com "\r: not found";
+#   - o Makefile falharia nos recipes.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary

@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+tmp
+deploy
+*.md
+docker-compose.yml
+Makefile
+.air.toml
+.tool-versions

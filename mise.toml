@@ -1,0 +1,16 @@
+# Versões das ferramentas de desenvolvimento, gerenciadas pelo mise
+# (https://mise.jdx.dev), que roda nativamente em macOS, Linux e Windows.
+#
+# Backends "aqua:" baixam o binário pré-compilado oficial de cada release
+# (com checksum verificado), inclusive o .exe no Windows. Eles são explícitos
+# para que o mise nunca recorra a plugins asdf, que não funcionam no Windows.
+#
+# Mantenha a versão do Go em sincronia com o go.mod e com o Dockerfile.
+# O mockgen não aparece aqui: ele é uma dependência "tool" do go.mod
+# (go tool mockgen), então a versão já vem fixada pelo próprio Go.
+
+[tools]
+go = "1.27.4"
+"aqua:golang-migrate/migrate" = "4.20.1"
+"aqua:air-verse/air" = "1.67.4"
+"aqua:swaggo/swag" = "1.16.6"
