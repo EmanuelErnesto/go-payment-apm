@@ -1,0 +1,30 @@
+# Collects the API's stdout (ECS JSON lines) from the Docker log files and
+# forwards it to Logstash. The application never talks to Logstash directly.
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      templates:
+        - condition:
+            equals:
+              # Conditions see the raw label path; dedotting (com_docker_...)
+              # only applies to the metadata added to the shipped events.
+              docker.container.labels.com.docker.compose.service: api
+          config:
+            - type: filestream
+              id: payments-api-${data.docker.container.id}
+              paths:
+                - /var/lib/docker/containers/${data.docker.container.id}/*.log
+              parsers:
+                - container: ~
+
+processors:
+  # Compose labels carry host paths (project dir, config files) and add
+  # nothing for log analysis.
+  - drop_fields:
+      fields: ["docker.container.labels"]
+      ignore_missing: true
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
+logging.level: warning

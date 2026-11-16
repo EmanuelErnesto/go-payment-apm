@@ -1,0 +1,6 @@
+# Logstash 9 renamed http.host to api.http.host.
+api.http.host: "0.0.0.0"
+# Persisted queue buffers events on disk (named volume) so nothing is lost if
+# Elasticsearch is down or the container is recreated.
+queue.type: persisted
+queue.max_bytes: 1gb
