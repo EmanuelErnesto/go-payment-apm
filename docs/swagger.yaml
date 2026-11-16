@@ -1,0 +1,192 @@
+basePath: /
+definitions:
+  httpapi.CreatePaymentRequest:
+    properties:
+      amount_cents:
+        example: 1990
+        type: integer
+      currency:
+        enum:
+        - BRL
+        - USD
+        - EUR
+        example: BRL
+        type: string
+      description:
+        example: Monthly subscription
+        maxLength: 255
+        type: string
+      method:
+        enum:
+        - credit_card
+        - debit_card
+        - pix
+        - boleto
+        example: pix
+        type: string
+    required:
+    - amount_cents
+    - currency
+    - method
+    type: object
+  httpapi.ErrorResponse:
+    properties:
+      error:
+        example: invalid request body
+        type: string
+    type: object
+  httpapi.ListPaymentsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/httpapi.PaymentResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/httpapi.PaginationResponse'
+    type: object
+  httpapi.PaginationResponse:
+    properties:
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 10
+        type: integer
+      total_items:
+        example: 42
+        type: integer
+      total_pages:
+        example: 5
+        type: integer
+    type: object
+  httpapi.PaymentResponse:
+    properties:
+      amount_cents:
+        example: 1990
+        type: integer
+      created_at:
+        type: string
+      currency:
+        example: BRL
+        type: string
+      description:
+        example: Monthly subscription
+        type: string
+      id:
+        example: 0193a1c2-7b7e-7c3a-9f3e-1d2c3b4a5f60
+        type: string
+      method:
+        example: pix
+        type: string
+      status:
+        example: approved
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Simple payments API instrumented with Elastic APM.
+  title: Payments API
+  version: "1.0"
+paths:
+  /payments:
+    get:
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.ListPaymentsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      summary: List payments
+      tags:
+      - payments
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Payment data (amount in cents)
+        in: body
+        name: payment
+        required: true
+        schema:
+          $ref: '#/definitions/httpapi.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httpapi.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      summary: Create a payment
+      tags:
+      - payments
+  /payments/delay:
+    post:
+      consumes:
+      - application/json
+      description: Same flow as POST /payments with an intentional delay, recorded
+        as its own APM span.
+      parameters:
+      - description: Payment data (amount in cents)
+        in: body
+        name: payment
+        required: true
+        schema:
+          $ref: '#/definitions/httpapi.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httpapi.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      summary: Create a payment with a simulated bottleneck
+      tags:
+      - payments
+swagger: "2.0"
