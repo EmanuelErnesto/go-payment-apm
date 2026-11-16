@@ -1,0 +1,37 @@
+#!/bin/sh
+# Pre-commit hook: formata o código Go com `make fmt` e aborta o commit se:
+#   1. `make fmt` falhar (ex.: erro de sintaxe que o go fmt não consegue parsear);
+#   2. o go fmt alterar algum arquivo, pois o snapshot staged não seria o formatado.
+#
+# Ativação (uma vez por clone): make hooks
+# Escrito em sh POSIX para rodar também no Windows (Git for Windows usa o sh dele).
+set -eu
+
+# Commits sem arquivos .go não precisam de formatação.
+if [ -z "$(git diff --cached --name-only --diff-filter=ACMR -- '*.go')" ]; then
+	exit 0
+fi
+
+if ! command -v make >/dev/null 2>&1; then
+	echo "pre-commit: 'make' não encontrado no PATH (veja CONTRIBUTING.md)." >&2
+	exit 1
+fi
+
+# Snapshot das alterações não staged em arquivos Go. Comparar antes/depois
+# detecta só o que o go fmt mudou, mesmo com staging parcial (git add -p).
+before=$(git diff -- '*.go' | git hash-object --stdin)
+
+if ! make --no-print-directory fmt; then
+	echo "" >&2
+	echo "pre-commit: 'make fmt' falhou. Corrija os erros acima; commit abortado." >&2
+	exit 1
+fi
+
+after=$(git diff -- '*.go' | git hash-object --stdin)
+
+if [ "$before" != "$after" ]; then
+	echo "" >&2
+	echo "pre-commit: o go fmt reformatou arquivos. Revise com 'git diff'," >&2
+	echo "adicione com 'git add' e faça o commit novamente." >&2
+	exit 1
+fi
