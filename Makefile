@@ -1,8 +1,13 @@
 # Recipes usam apenas sh POSIX (sem bashismos), para funcionar tanto em
 # macOS/Linux quanto no Windows via Git Bash. Veja CONTRIBUTING.md.
 
--include .env
+# .env is optional (CI has none). The wildcard guard matters: with a plain
+# "-include .env", make would remake .env from the rule below (cp .env.example)
+# before running ANY target, including in CI.
+ifneq (,$(wildcard .env))
+include .env
 export
+endif
 
 COMPOSE        := docker compose
 DEPS           := postgres elasticsearch kibana apm-server logstash filebeat
@@ -97,9 +102,12 @@ fmt-check: ## Falha se houver arquivo Go fora do padrão (não altera nada; úti
 		echo "Arquivos não formatados (rode 'make fmt'):"; echo "$$unformatted"; exit 1; \
 	fi
 
+.PHONY: test-unit
+test-unit: ## Roda todos os testes unitários (race detector, ordem aleatória, sem cache)
+	go test -race -shuffle=on -count=1 ./...
+
 .PHONY: test
-test: ## Roda os testes com race detector
-	go test -race -count=1 ./...
+test: test-unit ## Alias de test-unit
 
 .PHONY: cover
 cover: ## Roda os testes com relatório de cobertura
