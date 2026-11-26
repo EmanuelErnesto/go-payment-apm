@@ -1,4 +1,4 @@
-package command_test
+package commandhandler_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/EmanuelErnesto/go-payment-apm/internal/application/command"
+	"github.com/EmanuelErnesto/go-payment-apm/internal/application/commandhandler"
 	"github.com/EmanuelErnesto/go-payment-apm/internal/application/port/mocks"
 	"github.com/EmanuelErnesto/go-payment-apm/internal/domain"
 	"github.com/EmanuelErnesto/go-payment-apm/internal/domain/entities"
@@ -93,7 +94,7 @@ func TestCreatePaymentHandler_Handle(t *testing.T) {
 				tt.setupMock(writer)
 			}
 
-			handler := command.NewCreatePaymentHandler(
+			handler := commandhandler.NewCreatePaymentHandler(
 				writer,
 				func() string { return fixedID },
 				func() time.Time { return fixedNow },
