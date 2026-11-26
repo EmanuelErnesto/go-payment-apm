@@ -1,4 +1,4 @@
-package query_test
+package queryhandler_test
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"github.com/EmanuelErnesto/go-payment-apm/internal/application/port"
 	"github.com/EmanuelErnesto/go-payment-apm/internal/application/port/mocks"
 	"github.com/EmanuelErnesto/go-payment-apm/internal/application/query"
+	"github.com/EmanuelErnesto/go-payment-apm/internal/application/queryhandler"
 )
 
 func TestListPaymentsHandler_Handle(t *testing.T) {
@@ -55,10 +56,10 @@ func TestListPaymentsHandler_Handle(t *testing.T) {
 			},
 			want: query.ListPaymentsResult{Items: []port.PaymentView{}, PageNumber: 1, PageSize: 10},
 		},
-		{name: "page zero", query: query.ListPaymentsQuery{PageNumber: 0, PageSize: 10}, wantErr: query.ErrInvalidPageNumber},
-		{name: "negative page", query: query.ListPaymentsQuery{PageNumber: -1, PageSize: 10}, wantErr: query.ErrInvalidPageNumber},
-		{name: "page size zero", query: query.ListPaymentsQuery{PageNumber: 1, PageSize: 0}, wantErr: query.ErrInvalidPageSize},
-		{name: "page size above max", query: query.ListPaymentsQuery{PageNumber: 1, PageSize: query.MaxPageSize + 1}, wantErr: query.ErrInvalidPageSize},
+		{name: "page zero", query: query.ListPaymentsQuery{PageNumber: 0, PageSize: 10}, wantErr: queryhandler.ErrInvalidPageNumber},
+		{name: "negative page", query: query.ListPaymentsQuery{PageNumber: -1, PageSize: 10}, wantErr: queryhandler.ErrInvalidPageNumber},
+		{name: "page size zero", query: query.ListPaymentsQuery{PageNumber: 1, PageSize: 0}, wantErr: queryhandler.ErrInvalidPageSize},
+		{name: "page size above max", query: query.ListPaymentsQuery{PageNumber: 1, PageSize: queryhandler.MaxPageSize + 1}, wantErr: queryhandler.ErrInvalidPageSize},
 		{
 			name:  "count failure",
 			query: query.ListPaymentsQuery{PageNumber: 1, PageSize: 10},
@@ -86,7 +87,7 @@ func TestListPaymentsHandler_Handle(t *testing.T) {
 				tt.setupMock(reader)
 			}
 
-			got, err := query.NewListPaymentsHandler(reader).Handle(context.Background(), tt.query)
+			got, err := queryhandler.NewListPaymentsHandler(reader).Handle(context.Background(), tt.query)
 
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {

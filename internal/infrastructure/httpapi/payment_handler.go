@@ -6,8 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/EmanuelErnesto/go-payment-apm/internal/application/command"
+	"github.com/EmanuelErnesto/go-payment-apm/internal/application/commandhandler"
 	"github.com/EmanuelErnesto/go-payment-apm/internal/application/query"
+	"github.com/EmanuelErnesto/go-payment-apm/internal/application/queryhandler"
 )
 
 // PaymentHandler is a driving adapter: it only translates HTTP <-> use case.
@@ -15,13 +16,13 @@ import (
 // the request context (carrying the APM transaction and the correlated
 // logger) is simply passed down to the application layer.
 type PaymentHandler struct {
-	createPayment *command.CreatePaymentHandler
-	listPayments  *query.ListPaymentsHandler
+	createPayment *commandhandler.CreatePaymentHandler
+	listPayments  *queryhandler.ListPaymentsHandler
 }
 
 func NewPaymentHandler(
-	createPayment *command.CreatePaymentHandler,
-	listPayments *query.ListPaymentsHandler,
+	createPayment *commandhandler.CreatePaymentHandler,
+	listPayments *queryhandler.ListPaymentsHandler,
 ) *PaymentHandler {
 	return &PaymentHandler{
 		createPayment: createPayment,
