@@ -17,8 +17,8 @@ import (
 	"go.uber.org/zap"
 
 	_ "github.com/EmanuelErnesto/go-payment-apm/docs"
-	"github.com/EmanuelErnesto/go-payment-apm/internal/application/command"
-	"github.com/EmanuelErnesto/go-payment-apm/internal/application/query"
+	"github.com/EmanuelErnesto/go-payment-apm/internal/application/commandhandler"
+	"github.com/EmanuelErnesto/go-payment-apm/internal/application/queryhandler"
 	"github.com/EmanuelErnesto/go-payment-apm/internal/infrastructure/httpapi"
 	"github.com/EmanuelErnesto/go-payment-apm/internal/infrastructure/logger"
 	"github.com/EmanuelErnesto/go-payment-apm/internal/infrastructure/persistence/postgres"
@@ -72,8 +72,8 @@ func run() error {
 	defer db.Close()
 
 	paymentHandler := httpapi.NewPaymentHandler(
-		command.NewCreatePaymentHandler(postgres.NewPaymentCommandRepository(db), newPaymentID, time.Now),
-		query.NewListPaymentsHandler(postgres.NewPaymentQueryRepository(db)),
+		commandhandler.NewCreatePaymentHandler(postgres.NewPaymentCommandRepository(db), newPaymentID, time.Now),
+		queryhandler.NewListPaymentsHandler(postgres.NewPaymentQueryRepository(db)),
 	)
 
 	router, err := httpapi.NewRouter(httpapi.RouterConfig{
