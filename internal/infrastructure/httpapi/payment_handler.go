@@ -110,8 +110,7 @@ func (h *PaymentHandler) CreateWithDelay(c *gin.Context) {
 // respondBindError answers 413 when the body hit the limitBody cap and 400 for
 // any other decoding or validation failure.
 func respondBindError(c *gin.Context, err error, message string) {
-	var tooLarge *http.MaxBytesError
-	if errors.As(err, &tooLarge) {
+	if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
 		c.JSON(http.StatusRequestEntityTooLarge, ErrorResponse{Error: "request body too large"})
 		return
 	}

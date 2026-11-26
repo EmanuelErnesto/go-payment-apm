@@ -126,4 +126,4 @@ load-test: ## Teste de carga com k6 (opcional: DURATION=5m RATE=50 DELAY_VUS=10)
 		$(if $(DURATION),-e DURATION=$(DURATION)) \
 		$(if $(RATE),-e RATE=$(RATE)) \
 		$(if $(DELAY_VUS),-e DELAY_VUS=$(DELAY_VUS)) \
-		scripts/load.js
+		./scripts/load.js
