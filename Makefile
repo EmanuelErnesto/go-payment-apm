@@ -117,3 +117,13 @@ cover: ## Roda os testes com relatório de cobertura
 .PHONY: vet
 vet: ## Análise estática
 	go vet ./...
+
+## ---------- Carga ----------
+
+.PHONY: load-test
+load-test: ## Teste de carga com k6 (opcional: DURATION=5m RATE=50 DELAY_VUS=10)
+	k6 run -e BASE_URL=http://localhost:$(or $(HTTP_PORT),8080) \
+		$(if $(DURATION),-e DURATION=$(DURATION)) \
+		$(if $(RATE),-e RATE=$(RATE)) \
+		$(if $(DELAY_VUS),-e DELAY_VUS=$(DELAY_VUS)) \
+		scripts/load.js
