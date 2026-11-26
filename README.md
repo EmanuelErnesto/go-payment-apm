@@ -232,10 +232,34 @@ make run         # API local com hot reload (Air)
 | `make fmt-check` | Só verifica a formatação, sem alterar nada (usado no CI) |
 | `make mocks`     | Regenera os mocks das ports (gomock) |
 | `make swagger`   | Regenera a documentação Swagger |
+| `make load-test` | Teste de carga com k6 (veja abaixo) |
 | `make help`      | Lista todos os comandos |
 
 O CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) roda formatação, `vet`, testes
 unitários e build a cada push e pull request para a `main`.
+
+### Teste de carga
+
+O [`scripts/load.js`](scripts/load.js) envia requisições para `GET /payments`, `POST /payments` e
+`POST /payments/delay`, gerando volume de traces e spans no APM. Requer o
+[k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) instalado (no Windows,
+`winget install GrafanaLabs.k6`) e a API no ar.
+
+```bash
+make load-test
+make load-test DURATION=5m RATE=50 DELAY_VUS=10
+```
+
+| Variável    | Padrão | Descrição |
+|-------------|--------|-----------|
+| `DURATION`  | `1m`   | Duração do teste |
+| `RATE`      | `20`   | Requisições por segundo em cada rota rápida (`GET` e `POST /payments`) |
+| `DELAY_VUS` | `5`    | Usuários virtuais simultâneos em `POST /payments/delay` |
+
+O k6 marca falha se mais de 1% das requisições der erro ou se o p95 de `GET` ou `POST /payments`
+passar de 500 ms.
+
+> Os `POST` gravam registros reais no banco usado pela API.
 
 ## Estrutura do projeto
 
@@ -255,6 +279,7 @@ unitários e build a cada push e pull request para a `main`.
 │       ├── logger/           # zap + ECS + correlação com o APM
 │       └── persistence/      # repositórios Postgres
 ├── migrations/               # migrações SQL (golang-migrate)
+├── scripts/                  # teste de carga (k6)
 ├── deploy/                   # configs de APM Server, Filebeat, Logstash e Postgres
 ├── docs/                     # Swagger gerado
 └── docker-compose.yml
